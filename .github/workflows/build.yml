@@ -41,7 +41,7 @@ jobs:
       with:        
         fetch-depth: 0 # Disabling shallow clone is recommended for improving relevancy of reporting
     - name: SonarCloud Scan
-      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage
+      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Psonar
       env:
         # Needed to get some information about the pull request, if any
         GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
