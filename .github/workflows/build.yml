@@ -35,6 +35,7 @@ jobs:
   sonar:
     name: Test - SonarCloud Scan
     runs-on: ubuntu-20.04
+    needs: [build]
     steps:
     - name: Checking out
       uses: actions/checkout@v3
@@ -42,9 +43,8 @@ jobs:
         fetch-depth: 0 # Disabling shallow clone is recommended for improving relevancy of reporting
     - name: SonarCloud Scan
       run: mvn -B -ntp verify -Psonar
-      env:
-        # Needed to get some information about the pull request, if any
-        GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
-        # SonarCloud access token should be generated from https://sonarcloud.io/account/security/
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      env:        
+        GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}        
+        SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
     
