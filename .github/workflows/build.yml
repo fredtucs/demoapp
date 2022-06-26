@@ -11,8 +11,8 @@ on:
 
 jobs:
 
-  build:
-    name: Build
+  test:
+    name: Test
     runs-on: ubuntu-20.04
     steps:
     - name: Checking out
@@ -25,16 +25,13 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
-    - name: Build with Maven
-      run: mvn -B -ntp clean package --file pom.xml -DskipTests
-    - name: Maven Verify
-      run: mvn -B clean verify -Pintegration-test
+        settings-path: ${{ github.workspace }} # location for the settings.xml file    
+      run: mvn -B -ntp clean test    
 
   sonar:
     name: Test - SonarCloud Scan
     runs-on: ubuntu-20.04
-    needs: [build]
+    needs: [test]
     steps:
     - name: Checking out
       uses: actions/checkout@v3
@@ -46,12 +43,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}        
         SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
-    
-  artifact:
-    name: Publish - GitHub Packages
-    runs-on: ubuntu-20.04
-    needs: [build, sonar]
-    steps:
+   
+  build:
+      name: Build
+      runs-on: ubuntu-20.04
+      needs: [sonar]
+      steps:
       - name: Checking out
         uses: actions/checkout@v3
         with:        
@@ -63,7 +60,33 @@ jobs:
           distribution: 'temurin'
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
-      - name: Publish artifact on GitHub Packages
-        run: mvn -B -ntp clean deploy -DskipTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+      - name: Build with Maven
+        run: mvn -B -ntp clean install --file pom.xml -DskipTests      
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v2
+        with:
+          name: java-app
+          path: '${{ github.workspace }}/target/*.jar'
+
+  deploy:
+      name: Deploy to Azure
+      runs-on: ubuntu-20.04
+      needs: build
+      environment:
+        name: 'production'
+        url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      
+      steps:
+        - name: Download artifact from build job
+          uses: actions/download-artifact@v2
+          with:
+            name: java-app
+
+        - name: Deploy to Azure Web App
+          id: deploy-to-webapp
+          uses: azure/webapps-deploy@v2
+          with:
+            app-name: 'demo-app-nttd'
+            slot-name: 'production'
+            publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AC09C2ED56B346D79156A390556D56AE }}
+            package: '*.jar'
