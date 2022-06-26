@@ -86,20 +86,20 @@ jobs:
         with:
           name: java-app
       
-      - name: Set up secret file
-        env:
-          DEBUG_PASSWORD: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}          
-        run: |
-          echo $DEBUG_PASSWORD >> secrets.txt          
+      # - name: Set up secret file
+      #   env:
+      #     DEBUG_PASSWORD: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}          
+      #   run: |
+      #     echo $DEBUG_PASSWORD >> secrets.txt          
 
-      - name: Run tmate
-        uses: mxschmitt/action-tmate@v2
+      # - name: Run tmate
+      #   uses: mxschmitt/action-tmate@v2
 
-      # - name: Deploy to Azure Web App
-      #   id: deploy-to-webapp
-      #   uses: azure/webapps-deploy@v2
-      #   with:
-      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
-      #     slot-name: 'production'
-      #     publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5A03CD4B9B4445AB9C7A81A1B2F2F6FF }}
-      #     package: '*.jar'
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: '*.jar'
