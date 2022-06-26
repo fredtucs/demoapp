@@ -13,7 +13,7 @@ public class DemoController {
     @GetMapping
     @ResponseStatus(code = HttpStatus.OK)
     public String saludo() {
-        return "Hola mundo cruel!";
+        return "Hola mundo cruel maldito!";
     }
 
 }
