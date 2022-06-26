@@ -31,4 +31,20 @@ jobs:
       run: mvn -B -ntp clean package --file pom.xml -DskipTests
     - name: Maven Verify
       run: mvn -B clean verify -Pintegration-test
-  
+
+  sonar:
+    name: Test - SonarCloud Scan
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checking out
+      uses: actions/checkout@v3
+      with:        
+        fetch-depth: 0 # Disabling shallow clone is recommended for improving relevancy of reporting
+    - name: SonarCloud Scan
+      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage
+      env:
+        # Needed to get some information about the pull request, if any
+        GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+        # SonarCloud access token should be generated from https://sonarcloud.io/account/security/
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    
