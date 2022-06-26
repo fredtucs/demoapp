@@ -3,8 +3,7 @@
 name: Java CI with Maven
 
 env:
-  AZURE_WEBAPP_NAME: demo-app-dock-nttd
-  DOCKER_REPO: https://hub.docker.com/repository/docker/fredtucs/demo-app-nttd
+  AZURE_WEBAPP_NAME: demo-app-dock-nttd  
 
 on:
   push:
