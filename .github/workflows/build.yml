@@ -26,10 +26,11 @@ jobs:
         distribution: 'temurin'
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file    
+    - name: Test
       run: mvn -B -ntp clean test    
 
   sonar:
-    name: Test - SonarCloud Scan
+    name: SonarCloud
     runs-on: ubuntu-20.04
     needs: [test]
     steps:
