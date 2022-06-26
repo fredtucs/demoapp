@@ -69,4 +69,25 @@ jobs:
         name: java-app
         path: '${{ github.workspace }}/target/*.jar'	
 
- 
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-20.04
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: java-app
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'demo-app-nttd'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AC09C2ED56B346D79156A390556D56AE }}
+          package: '*.jar'
