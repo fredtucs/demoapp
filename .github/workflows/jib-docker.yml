@@ -24,6 +24,7 @@ jobs:
       uses: actions/checkout@v3
       with:        
         fetch-depth: 0 # Disabling shallow clone is recommended for improving relevancy of reporting
+        
     - name: Set up JDK 11
       uses: actions/setup-java@v3
       with:
@@ -31,6 +32,7 @@ jobs:
         distribution: 'temurin'
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
+
     - name: Build with Maven
       run: mvn -B -ntp clean install --file pom.xml -DskipTests      
 
@@ -67,25 +69,25 @@ jobs:
 
     - name: Build to GitHub Container Registry
       run: >
-          mvn compile jib:build
+          mvn -B -ntp compile jib:build
           -Djib.to.image=ghcr.io/${{ env.REPO }}:latest
 
-  # deploy:
-  #   name: Deploy to Azure
-  #   runs-on: ubuntu-20.04
-  #   needs: docker-app
-  #   environment:
-  #     name: 'production'
-  #     url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-20.04
+    needs: docker-app
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-  #   steps:
-  #     - name: Lowercase the repo name
-  #       run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+    steps:
+      - name: Lowercase the repo name
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-  #     - name: Deploy to Azure Web App
-  #       id: deploy-to-webapp
-  #       uses: azure/webapps-deploy@v2
-  #       with:
-  #         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-  #         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DOCKER }}
-  #         images: 'ghcr.io/${{ env.REPO }}:${{ github.sha }}'
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DOCKER }}
+          images: 'ghcr.io/${{ env.REPO }}:latest'
