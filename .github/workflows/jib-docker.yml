@@ -70,9 +70,8 @@ jobs:
     - name: Build to GitHub Container Registry
       run: >
           mvn -B -ntp compile jib:build
-          -Djib.to.image=ghcr.io/${{ env.REPO }}
-          -Djib.to.image.tags=latest,${{ github.sha }}
-          -Djib.container.ports=8080
+          -Djib.to.image=ghcr.io/${{ env.REPO }}:${{ github.sha }}
+          -Djib.to.image.tags=latest
 
   deploy:
     name: Deploy to Azure
