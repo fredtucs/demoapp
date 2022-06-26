@@ -13,9 +13,19 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
+
+	<distributionManagement>	
+		<repository>
+			<id>github</id>
+			<name>NoticeBoard Simple CRUD application</name>
+			<url>https://maven.pkg.github.com/fredtucs/demoapp</url> 
+		</repository>
+	</distributionManagement>
+
 	<properties>
 		<java.version>11</java.version>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
