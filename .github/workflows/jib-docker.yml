@@ -72,6 +72,7 @@ jobs:
           mvn -B -ntp compile jib:build
           -Djib.to.image=ghcr.io/${{ env.REPO }}:latest
           -Djib.to.image.tags=${{ github.sha }}
+          -Djib.container.ports=8080
 
   deploy:
     name: Deploy to Azure
