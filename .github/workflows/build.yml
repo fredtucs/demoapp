@@ -1,0 +1,80 @@
+name: Build and Analysis Code
+
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checking out
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "temurin"
+          cache: maven
+
+      # - name: Checkstyle
+      #   run: mvn -B -ntp checkstyle:checkstyle
+
+      # - name: Spotbugs
+      #   run: mvn -B -ntp spotbugs:spotbugs
+
+      - name: Build with Maven
+        run: mvn -B -ntp clean install -DskipTests=true
+
+      - name: Extract Maven properties
+        id: extract-maven-properties
+        run: |
+          echo "PROJECT_NAME=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
+          echo "PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "PROJECT_GROUP=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: SonarQube analysis
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.PROJECT_GROUP }}:${{ env.PROJECT_NAME }}-v${{ env.PROJECT_VERSION }}
+            -Dsonar.organization=${{ secrets.SONARQUBE_ORGANIZATION }}
+            -Dsonar.projectName=${{ env.PROJECT_NAME }}
+            -Dsonar.projectVersion=${{ env.PROJECT_VERSION }}
+            -Dsonar.sources=src/main
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.java.binaries=target/classes
+            -Dsonar.exclusions=src/main/webapp/content/**/*.*,src/main/webapp/i18n/*.js,target/classes/static/**/*.*
+            -Dsonar.issue.ignore.multicriteria=S3437,S4502,S4684,S5145,UndocumentedApi
+            -Dsonar.issue.ignore.multicriteria.S3437.resourceKey=src/main/java/**/*
+            -Dsonar.issue.ignore.multicriteria.S3437.ruleKey=squid:S3437
+            -Dsonar.issue.ignore.multicriteria.S4502.resourceKey=src/main/java/**/*
+            -Dsonar.issue.ignore.multicriteria.S4502.ruleKey=java:S4502
+            -Dsonar.issue.ignore.multicriteria.S4684.resourceKey=src/main/java/**/*
+            -Dsonar.issue.ignore.multicriteria.S4684.ruleKey=java:S4684
+            -Dsonar.issue.ignore.multicriteria.S5145.resourceKey=src/main/java/**/*
+            -Dsonar.issue.ignore.multicriteria.S5145.ruleKey=javasecurity:S5145
+            -Dsonar.issue.ignore.multicriteria.UndocumentedApi.resourceKey=src/main/java/**/*
+            -Dsonar.issue.ignore.multicriteria.UndocumentedApi.ruleKey=squid:UndocumentedApi
+
+      # Check the Quality Gate status.
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 10
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarQube Quality Gate Status value
+        run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
