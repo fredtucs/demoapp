@@ -27,7 +27,7 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-          
+
       - name: Extract project name
         id: project-name
         uses: actions/github-script@v3
@@ -60,7 +60,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: ${{ steps.project-name.outputs.result }} ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           draft: true
           prerelease: false
 
