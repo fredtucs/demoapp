@@ -27,6 +27,13 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+          
+      - name: Extract project name
+        id: project-name
+        uses: actions/github-script@v3
+        with:
+          script: return context.repo.repo
+          result-encoding: string          
 
       - name: Build ${{ steps.project-name.outputs.result }}
         id: maven-build
@@ -39,8 +46,9 @@ jobs:
           JAR_PATH=$(ls ./target/*.jar | grep -vE "^./[^/]+/original-" | tail -n 1)
           JAR_NAME=$(basename $JAR_PATH)
 
-          echo "::set-output name=jar_path::$JAR_PATH"
-          echo "::set-output name=jar_name::$JAR_NAME"
+          echo "jar_path=$JAR_PATH" >> $GITHUB_ENV
+          echo "jar_name=$JAR_NAME" >> $GITHUB_ENV
+
         env:
           GIT_REF_NAME: ${{ github.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,6 +70,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ steps.maven-build.outputs.jar_path }}
-          asset_name: ${{ steps.maven-build.outputs.jar_name }}
+          asset_path: ${{ env.jar_path }}
+          asset_name: ${{ env.jar_name }}
           asset_content_type: application/java-archive
