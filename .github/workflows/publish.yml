@@ -50,7 +50,7 @@ jobs:
           echo "jar_name=$JAR_NAME" >> $GITHUB_ENV
 
         env:
-          GIT_REF_NAME: ${{ github.ref }}
+          GIT_REF_NAME: ${{ github.run_number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new GitHub Release
@@ -59,10 +59,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: true
-          prerelease: false
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
 
       - name: Add ${{ steps.project-name.outputs.result }} JAR to GitHub Release
         uses: actions/upload-release-asset@v1
